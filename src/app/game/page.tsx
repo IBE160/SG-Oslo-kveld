@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { generateDeck, type UICard } from "@/lib/deck";
 import { useSearchParams, useRouter } from "next/navigation";
 import ResultsModal from "@/components/ResultsModal";
 import WinnerAnnouncement from "@/components/WinnerAnnouncement";
+import { useGameStore } from "@/store/gameStore";
+import type { GameMode } from "@/lib/deck";
 
 function toInt(v: string | null, fallback: number) {
   if (v == null) return fallback;
@@ -12,16 +13,28 @@ function toInt(v: string | null, fallback: number) {
   return Number.isFinite(n) ? Math.trunc(n) : fallback;
 }
 
-type Player = { id: number; name: string; score: number };
-
 export default function GamePage() {
   const router = useRouter();
   const search = useSearchParams();
+
+  const {
+    deck,
+    players,
+    currentPlayer,
+    isBusy,
+    winner,
+    gameStarted,
+    gameMode,
+    startGame,
+    flipCard,
+    resetGame,
+  } = useGameStore();
 
   // ----- URL-parametre -----
   const playersParam = toInt(search.get("players"), 2);
   const cardsParam = toInt(search.get("cards"), 30);
   const namesParam = search.get("names") ?? "";
+  const modeParam = (search.get("mode") as GameMode) || "numbers";
 
   const numPlayers = Math.min(6, Math.max(2, playersParam));
   const totalCards = Math.max(2, Math.trunc(cardsParam / 2) * 2);
@@ -30,18 +43,6 @@ export default function GamePage() {
   const rawQuery = search.toString(); // debug
 
   // ----- State -----
-  const [deck, setDeck] = useState<UICard[]>([]);
-  const [flippedIds, setFlippedIds] = useState<string[]>([]);
-  const [isBusy, setIsBusy] = useState(false);
-
-  const [players, setPlayers] = useState<Player[]>(
-    Array.from({ length: numPlayers }, (_, i) => ({
-      id: i,
-      name: playerNames[i] || `Spiller ${i + 1}`,
-      score: 0,
-    }))
-  );
-  const [activePlayer, setActivePlayer] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [showBigWinner, setShowBigWinner] = useState(false);
 
@@ -85,20 +86,8 @@ export default function GamePage() {
 
   // ----- Init / restart når valg endres -----
   useEffect(() => {
-    setDeck(generateDeck(totalCards));
-    setPlayers(
-      Array.from({ length: numPlayers }, (_, i) => ({
-        id: i,
-        name: playerNames[i] || `Spiller ${i + 1}`,
-        score: 0,
-      }))
-    );
-    setActivePlayer(0);
-    setFlippedIds([]);
-    setIsBusy(false);
-    setGameOver(false);
-    setShowBigWinner(false);
-  }, [numPlayers, totalCards, namesParam]);
+    startGame(numPlayers, modeParam);
+  }, [numPlayers, totalCards, namesParam, modeParam, startGame]);
 
   // ----- Feiring ved match -----
   async function triggerCelebration() {
@@ -138,73 +127,23 @@ export default function GamePage() {
 
   // Når gameOver blir true → vis stort banner hvis entydig vinner
   useEffect(() => {
-    if (!gameOver) return;
+    if (!winner) return;
     const maxScore = Math.max(...players.map((p) => p.score));
     const currentWinners = players.filter((p) => p.score === maxScore && p.score > 0);
     if (currentWinners.length === 1) {
       runWinnerAnimation();
       setShowBigWinner(true);
     }
-  }, [gameOver, players]);
+    setGameOver(true);
+  }, [winner, players]);
 
-  // ----- Match-logikk -----
   function handleFlip(id: string) {
     if (isBusy) return;
-    if (flippedIds.length === 2) return;
-
-    const card = deck.find((c) => c.id === id);
-    if (!card || card.isMatched || card.isFaceUp) return;
-
-    const turnDeck = deck.map((c) => (c.id === id ? { ...c, isFaceUp: true } : c));
-    const newFlipped = [...flippedIds, id];
-
-    setDeck(turnDeck);
-    setFlippedIds(newFlipped);
-
-    if (newFlipped.length === 2) {
-      setIsBusy(true);
-      const [a, b] = newFlipped;
-
-      setTimeout(() => {
-        const c1 = turnDeck.find((c) => c.id === a)!;
-        const c2 = turnDeck.find((c) => c.id === b)!;
-
-        if (c1.value === c2.value) {
-          // Bygg nextDeck med match-markering FØR vi sjekker gameOver:
-          const nextDeck = turnDeck.map((c) =>
-            c.id === a || c.id === b ? { ...c, isMatched: true, isFaceUp: true } : c
-          );
-
-          setDeck(nextDeck);
-          setPlayers((prev) =>
-            prev.map((p, idx) => (idx === activePlayer ? { ...p, score: p.score + 1 } : p))
-          );
-          triggerCelebration();
-
-          // Nå kan vi trygt sjekke om alt er matchet:
-          const allMatched = nextDeck.every((c) => c.isMatched);
-          if (allMatched) setGameOver(true);
-          // Samme spiller fortsetter
-        } else {
-          // Bom → snu tilbake og bytt spiller
-          setDeck((prev) =>
-            prev.map((c) => (c.id === a || c.id === b ? { ...c, isFaceUp: false } : c))
-          );
-          setActivePlayer((prev) => (prev + 1) % players.length);
-        }
-
-        setFlippedIds([]);
-        setIsBusy(false);
-      }, 700);
-    }
+    flipCard(id);
   }
 
   function handleReset() {
-    setFlippedIds([]);
-    setIsBusy(false);
-    setDeck(generateDeck(totalCards));
-    setPlayers((prev) => prev.map((p) => ({ ...p, score: 0 })));
-    setActivePlayer(0);
+    resetGame();
     setGameOver(false);
     setShowBigWinner(false);
   }
@@ -220,7 +159,7 @@ export default function GamePage() {
     <div style={{ padding: 16, height: "100vh", boxSizing: "border-box" }}>
       {/* Topp-linje */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-        <h1 style={{ margin: 0 }}>To Like (tall)</h1>
+        <h1 style={{ margin: 0 }}>To Like ({gameMode === "numbers" ? "Tall" : "Bokstaver"})</h1>
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
           <button
             onClick={handleReset}
@@ -260,17 +199,17 @@ export default function GamePage() {
               padding: "6px 10px",
               border: "1px solid #ddd",
               borderRadius: 8,
-              background: idx === activePlayer ? "red" : "#f3f4f6",
-              fontWeight: idx === activePlayer ? 700 : 500,
-              color: idx === activePlayer ? "black" : "inherit",
+              background: p.id === currentPlayer ? "red" : "#f3f4f6",
+              fontWeight: p.id === currentPlayer ? 700 : 500,
+              color: p.id === currentPlayer ? "black" : "inherit",
             }}
           >
-            {p.name}: {p.score}
-            {idx === activePlayer ? " ← din tur" : ""}
+            {playerNames[idx] || `Spiller ${p.id}`}: {p.score}
+            {p.id === currentPlayer ? " ← din tur" : ""}
           </div>
         ))}
         <div style={{ marginLeft: "auto", opacity: 0.8 }}>
-          Spillere: {numPlayers} • Kort: {totalCards}
+          Modus: {gameMode === "numbers" ? "Tall" : "Bokstaver"} • Spillere: {numPlayers} • Kort: {totalCards}
         </div>
       </div>
 
@@ -299,8 +238,7 @@ export default function GamePage() {
         >
           {deck.map((c) => {
             const faceUp = c.isFaceUp || c.isMatched;
-            const clickable =
-              !isBusy && !c.isMatched && !c.isFaceUp && flippedIds.length < 2;
+            const clickable = !isBusy && !c.isMatched && !c.isFaceUp;
 
             return (
               <div
@@ -332,14 +270,17 @@ export default function GamePage() {
       {/* Vinner-annonsering (stor) */}
       {showBigWinner && winners.length === 1 && (
         <WinnerAnnouncement
-          winnerName={winners[0].name}
+          winnerName={playerNames[winners[0].id - 1] || `Spiller ${winners[0].id}`}
           onComplete={() => setShowBigWinner(false)}
         />
       )}
 
       {/* Resultatmodal etter stor banner */}
       {gameOver && !showBigWinner && winners.length === 1 && (
-        <ResultsModal winnerName={winners[0].name} onClose={handleReset} />
+        <ResultsModal
+          winnerName={playerNames[winners[0].id - 1] || `Spiller ${winners[0].id}`}
+          onClose={handleReset}
+        />
       )}
 
       {/* Uavgjort / ingen poeng */}

@@ -2,12 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import type { GameMode } from "@/lib/deck";
+import { useGameStore } from "@/store/gameStore";
 
 export default function HomePage() {
   const router = useRouter();
   const [players, setPlayers] = useState<number>(2);
   const [cards, setCards] = useState<number>(30);
   const [names, setNames] = useState<string[]>(["Spiller 1", "Spiller 2"]);
+  const gameMode = useGameStore((state) => state.gameMode);
+  const setGameMode = useGameStore((state) => state.setGameMode);
 
   // Hold navn-array i sync med antall spillere
   useEffect(() => {
@@ -30,12 +34,14 @@ export default function HomePage() {
   function startGame(e: React.FormEvent) {
     e.preventDefault();
     const p = Math.min(6, Math.max(2, players | 0));
-    const even = Math.max(2, Math.trunc((cards | 0) / 2) * 2);
+    const maxCards = gameMode === "letters" ? 58 : 200;
+    const even = Math.min(maxCards, Math.max(2, Math.trunc((cards | 0) / 2) * 2));
 
     const qs = new URLSearchParams({
       players: String(p),
       cards: String(even),
       names: names.map(encodeURIComponent).join(","),
+      mode: gameMode,
     });
     router.push(`/game?${qs.toString()}`);
   }
@@ -52,10 +58,36 @@ export default function HomePage() {
         <div className="glass w-full rounded-2xl p-6 shadow-2xl md:p-8">
           {/* Tittel med gradient-tekst */}
           <h1 className="mb-6 bg-gradient-to-r from-white via-white/90 to-white/70 bg-clip-text text-4xl font-extrabold text-transparent md:text-5xl">
-            To Like <span className="opacity-80">(tall)</span>
+            To Like <span className="opacity-80">({gameMode === "numbers" ? "Tall" : "Bokstaver"})</span>
           </h1>
 
           <form onSubmit={startGame} className="grid gap-5">
+            {/* Modus-velger */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setGameMode("numbers")}
+                className={`rounded-lg py-2 text-center font-semibold text-white transition ${
+                  gameMode === "numbers"
+                    ? "bg-white/30 ring-2 ring-white/50"
+                    : "bg-white/10 hover:bg-white/20"
+                }`}
+              >
+                Tall
+              </button>
+              <button
+                type="button"
+                onClick={() => setGameMode("letters")}
+                className={`rounded-lg py-2 text-center font-semibold text-white transition ${
+                  gameMode === "letters"
+                    ? "bg-white/30 ring-2 ring-white/50"
+                    : "bg-white/10 hover:bg-white/20"
+                }`}
+              >
+                Bokstaver
+              </button>
+            </div>
+
             {/* Antall spillere */}
             <label className="grid gap-2">
               <span className="text-sm font-medium text-white/90">Antall spillere (2–6):</span>
@@ -95,12 +127,12 @@ export default function HomePage() {
             {/* Antall kort */}
             <label className="grid gap-2">
               <span className="text-sm font-medium text-white/90">
-                Antall kort (2–200, partall):
+                Antall kort ({gameMode === "letters" ? "2–58" : "2–200"}, partall):
               </span>
               <input
                 type="number"
                 min={2}
-                max={200}
+                max={gameMode === "letters" ? 58 : 200}
                 step={2}
                 value={cards}
                 onChange={(e) => setCards(toInt(e.target.value, 30))}

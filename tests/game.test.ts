@@ -1,117 +1,115 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createShuffledCards } from '../src/lib/utils';
-import useGameStore from '../src/store/gameStore';
+import { useGameStore } from '../src/store/gameStore';
+import { generateDeck } from '../src/lib/deck';
 
 // Reset store before each test
 beforeEach(() => {
-  useGameStore.setState(useGameStore.getInitialState());
-});
-
-describe('createShuffledCards', () => {
-  it('should create the correct number of cards', () => {
-    const cards = createShuffledCards(30);
-    expect(cards.length).toBe(30);
-  });
-
-  it('should create pairs of numbers', () => {
-    const cards = createShuffledCards(30);
-    const values = cards.map(card => card.value);
-    const valueCounts = values.reduce((acc, value) => {
-      acc[value] = (acc[value] || 0) + 1;
-      return acc;
-    }, {} as Record<number, number>);
-
-    Object.values(valueCounts).forEach(count => {
-      expect(count).toBe(2);
-    });
-  });
-
-  it('should throw an error for an odd number of tiles', () => {
-    expect(() => createShuffledCards(31)).toThrow('Number of tiles must be an even number.');
+  useGameStore.setState({
+    deck: [],
+    players: [],
+    currentPlayer: 1,
+    flippedCards: [],
+    isBusy: false,
+    winner: null,
+    gameStarted: false,
+    gameMode: "numbers",
   });
 });
 
 describe('gameStore state and actions', () => {
-  it('should start the game with correct initial state', () => {
-    const { actions } = useGameStore.getState();
-    actions.setSettings({ numPlayers: 3, numTiles: 40 });
-    actions.startGame();
+  it('should start the game with correct initial state for numbers', () => {
+    useGameStore.getState().startGame(3, 'numbers');
 
     const state = useGameStore.getState();
-    expect(state.gameState).toBe('playing');
+    expect(state.gameStarted).toBe(true);
     expect(state.players.length).toBe(3);
-    expect(state.cards.length).toBe(40);
-    expect(state.currentPlayerId).toBe(1);
+    expect(state.deck.length).toBe(30);
+    expect(state.currentPlayer).toBe(1);
+    expect(state.gameMode).toBe('numbers');
+  });
+
+  it('should start the game with correct initial state for letters', () => {
+    useGameStore.getState().startGame(2, 'letters');
+
+    const state = useGameStore.getState();
+    expect(state.gameStarted).toBe(true);
+    expect(state.players.length).toBe(2);
+    expect(state.deck.length).toBe(30);
+    expect(state.currentPlayer).toBe(1);
+    expect(state.gameMode).toBe('letters');
   });
 
   it('should flip a card', () => {
-    const { actions } = useGameStore.getState();
-    actions.startGame();
-    actions.flipCard(0);
+    useGameStore.getState().startGame(2, 'numbers');
+    const cardId = useGameStore.getState().deck[0].id;
+    useGameStore.getState().flipCard(cardId);
 
     const state = useGameStore.getState();
-    expect(state.cards[0].isFlipped).toBe(true);
-    expect(state.flippedCardIds).toEqual([0]);
+    expect(state.deck[0].isFaceUp).toBe(true);
+    expect(state.flippedCards.length).toBe(1);
   });
 
   it('should handle a non-matching pair', async () => {
-    const { actions } = useGameStore.getState();
-    actions.startGame();
+    useGameStore.getState().startGame(2, 'numbers');
     
     // Manually set cards for a predictable test
-    const cards = createShuffledCards(10);
-    cards[0].value = 1;
-    cards[1].value = 2;
-    useGameStore.setState({ cards });
+    const deck = generateDeck(10, 'numbers');
+    deck[0].value = 1;
+    deck[1].value = 2;
+    useGameStore.setState({ deck });
 
-    actions.flipCard(0);
-    actions.flipCard(1);
+    useGameStore.getState().flipCard(deck[0].id);
+    useGameStore.getState().flipCard(deck[1].id);
 
     let state = useGameStore.getState();
-    expect(state.flippedCardIds.length).toBe(2);
-    expect(state.currentPlayerId).toBe(1);
+    expect(state.flippedCards.length).toBe(2);
+    expect(state.currentPlayer).toBe(1);
 
     // Wait for the timeout
-    await new Promise(resolve => setTimeout(resolve, 750));
+    await new Promise(resolve => setTimeout(resolve, 1100));
 
     state = useGameStore.getState();
-    expect(state.cards[0].isFlipped).toBe(false);
-    expect(state.cards[1].isFlipped).toBe(false);
-    expect(state.currentPlayerId).toBe(2);
+    expect(state.deck[0].isFaceUp).toBe(false);
+    expect(state.deck[1].isFaceUp).toBe(false);
+    expect(state.currentPlayer).toBe(2);
   });
 
-  it('should handle a matching pair', () => {
-    const { actions } = useGameStore.getState();
-    actions.startGame();
+  it('should handle a matching pair', async () => {
+    useGameStore.getState().startGame(2, 'numbers');
 
     // Manually set cards for a predictable test
-    const cards = createShuffledCards(10);
-    cards[0].value = 5;
-    cards[1].value = 5;
-    useGameStore.setState({ cards });
+    const deck = generateDeck(10, 'numbers');
+    deck[0].value = 5;
+    deck[1].value = 5;
+    useGameStore.setState({ deck });
 
     const initialScore = useGameStore.getState().players[0].score;
 
-    actions.flipCard(0);
-    actions.flipCard(1);
+    useGameStore.getState().flipCard(deck[0].id);
+    useGameStore.getState().flipCard(deck[1].id);
+
+    // Wait for the timeout
+    await new Promise(resolve => setTimeout(resolve, 1100));
 
     const state = useGameStore.getState();
-    expect(state.cards[0].isMatched).toBe(true);
-    expect(state.cards[1].isMatched).toBe(true);
+    expect(state.deck[0].isMatched).toBe(true);
+    expect(state.deck[1].isMatched).toBe(true);
     expect(state.players[0].score).toBe(initialScore + 1);
-    expect(state.currentPlayerId).toBe(1); // Same player's turn
+    expect(state.currentPlayer).toBe(1); // Same player's turn
   });
 
-  it('should end the game when all pairs are matched', () => {
-    const { actions } = useGameStore.getState();
-    actions.setSettings({ numTiles: 2 });
-    actions.startGame();
+  it('should end the game when all pairs are matched', async () => {
+    useGameStore.getState().startGame(2, 'numbers');
+    const deck = generateDeck(2, 'numbers');
+    useGameStore.setState({ deck });
 
-    const cards = useGameStore.getState().cards;
-    actions.flipCard(cards[0].id);
-    actions.flipCard(cards[1].id);
+    useGameStore.getState().flipCard(deck[0].id);
+    useGameStore.getState().flipCard(deck[1].id);
+
+    // Wait for the timeout
+    await new Promise(resolve => setTimeout(resolve, 1100));
 
     const state = useGameStore.getState();
-    expect(state.gameState).toBe('finished');
+    expect(state.winner).not.toBeNull();
   });
 });

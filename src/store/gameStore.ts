@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import { generateDeck, Card } from "@/lib/deck";
+import { generateDeck, Card, GameMode } from "@/lib/deck";
 
 export type Player = {
   id: number;
@@ -16,8 +16,10 @@ type GameState = {
   isBusy: boolean;
   winner: Player | null;
   gameStarted: boolean;
+  gameMode: GameMode;
 
-  startGame: (playerCount: number) => void;
+  setGameMode: (mode: GameMode) => void;
+  startGame: (playerCount: number, gameMode: GameMode) => void;
   flipCard: (cardId: string) => void;
   resetGame: () => void;
 };
@@ -30,20 +32,24 @@ export const useGameStore = create<GameState>((set, get) => ({
   isBusy: false,
   winner: null,
   gameStarted: false,
+  gameMode: "numbers",
 
-  startGame: (playerCount) => {
+  setGameMode: (mode) => set({ gameMode: mode }),
+
+  startGame: (playerCount, gameMode) => {
     const players = Array.from({ length: playerCount }, (_, i) => ({
       id: i + 1,
       score: 0,
     }));
     set({
-      deck: generateDeck(30),
+      deck: generateDeck(30, gameMode),
       players,
       currentPlayer: 1,
       flippedCards: [],
       isBusy: false,
       winner: null,
       gameStarted: true,
+      gameMode,
     });
   },
 
@@ -78,7 +84,10 @@ export const useGameStore = create<GameState>((set, get) => ({
           const newDeck = deck.map((c) =>
             c.id === c1.id || c.id === c2.id ? { ...c, isFaceUp: false } : c
           );
-          set({ deck: newDeck });
+          set({
+            deck: newDeck,
+            currentPlayer: (currentPlayer % players.length) + 1,
+          });
         }
 
         const allMatched = get().deck.every((c) => c.isMatched);
@@ -90,15 +99,15 @@ export const useGameStore = create<GameState>((set, get) => ({
         set({
           flippedCards: [],
           isBusy: false,
-          currentPlayer: (currentPlayer % players.length) + 1,
         });
       }, 1000);
     }
   },
 
   resetGame: () => {
+    const { gameMode } = get();
     set({
-      deck: generateDeck(30),
+      deck: generateDeck(30, gameMode),
       players: get().players.map((p) => ({ ...p, score: 0 })),
       currentPlayer: 1,
       flippedCards: [],
