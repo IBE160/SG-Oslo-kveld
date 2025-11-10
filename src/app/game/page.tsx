@@ -86,7 +86,7 @@ export default function GamePage() {
 
   // ----- Init / restart når valg endres -----
   useEffect(() => {
-    startGame(numPlayers, modeParam);
+    startGame(numPlayers, modeParam, totalCards);
   }, [numPlayers, totalCards, namesParam, modeParam, startGame]);
 
   // ----- Feiring ved match -----

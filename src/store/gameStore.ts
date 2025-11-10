@@ -19,7 +19,7 @@ type GameState = {
   gameMode: GameMode;
 
   setGameMode: (mode: GameMode) => void;
-  startGame: (playerCount: number, gameMode: GameMode) => void;
+  startGame: (playerCount: number, gameMode: GameMode, totalCards: number) => void;
   flipCard: (cardId: string) => void;
   resetGame: () => void;
 };
@@ -36,13 +36,13 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   setGameMode: (mode) => set({ gameMode: mode }),
 
-  startGame: (playerCount, gameMode) => {
+  startGame: (playerCount, gameMode, totalCards) => {
     const players = Array.from({ length: playerCount }, (_, i) => ({
       id: i + 1,
       score: 0,
     }));
     set({
-      deck: generateDeck(30, gameMode),
+      deck: generateDeck(totalCards, gameMode),
       players,
       currentPlayer: 1,
       flippedCards: [],
@@ -105,9 +105,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   resetGame: () => {
-    const { gameMode } = get();
+    const { gameMode, deck } = get();
     set({
-      deck: generateDeck(30, gameMode),
+      deck: generateDeck(deck.length, gameMode),
       players: get().players.map((p) => ({ ...p, score: 0 })),
       currentPlayer: 1,
       flippedCards: [],
