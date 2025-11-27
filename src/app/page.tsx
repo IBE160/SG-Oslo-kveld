@@ -1,166 +1,113 @@
 "use client";
-
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import type { GameMode } from "@/lib/deck";
-import { useGameStore } from "@/store/gameStore";
+import { useState } from "react";
+import { useRouter } from "next/navigation";   // router for å starte spill
 
 export default function HomePage() {
+  const [kort, setKort] = useState(4);
   const router = useRouter();
-  const [players, setPlayers] = useState<number>(2);
-  const [cards, setCards] = useState<number>(30);
-  const [names, setNames] = useState<string[]>(["Spiller 1", "Spiller 2"]);
-  const gameMode = useGameStore((state) => state.gameMode);
-  const setGameMode = useGameStore((state) => state.setGameMode);
 
-  // Hold navn-array i sync med antall spillere
-  useEffect(() => {
-    setNames((prev) => {
-      const next = [...prev];
-      if (players > next.length) {
-        for (let i = next.length; i < players; i++) next.push(`Spiller ${i + 1}`);
-      } else if (players < next.length) {
-        next.length = players;
-      }
-      return next;
-    });
-  }, [players]);
-
-  function toInt(v: string, fb: number) {
-    const n = Number(v);
-    return Number.isFinite(n) ? Math.trunc(n) : fb;
-  }
-
-  function startGame(e: React.FormEvent) {
-    e.preventDefault();
-    const p = Math.min(6, Math.max(2, players | 0));
-    const maxCards = gameMode === "letters" ? 58 : 200;
-    const even = Math.min(maxCards, Math.max(2, Math.trunc((cards | 0) / 2) * 2));
-
+  // ⭐ STEG 2: startGame-funksjon
+  function startGame() {
     const qs = new URLSearchParams({
-      players: String(p),
-      cards: String(even),
-      names: names.map(encodeURIComponent).join(","),
-      mode: gameMode,
+      cards: String(kort)
     });
+
     router.push(`/game?${qs.toString()}`);
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      {/* Animerte gradient-bakgrunn */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-indigo-600 via-sky-500 to-emerald-500 animate-gradient" />
-      {/* Myke, flytende prikker */}
-      <div className="pointer-events-none absolute -left-10 top-10 h-40 w-40 rounded-full bg-white/15 blur-2xl float-slow" />
-      <div className="pointer-events-none absolute right-10 bottom-10 h-48 w-48 rounded-full bg-white/10 blur-3xl float-slow" style={{ animationDelay: "1.2s" }} />
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-[#FFE6FA] via-[#D6F7FF] to-[#FFE8C8] flex items-center justify-center p-4">
 
-      <main className="mx-auto flex min-h-screen w-full max-w-3xl items-center justify-center p-6">
-        <div className="glass w-full rounded-2xl p-6 shadow-2xl md:p-8">
-          {/* Tittel med gradient-tekst */}
-          <h1 className="mb-6 bg-gradient-to-r from-white via-white/90 to-white/70 bg-clip-text text-4xl font-extrabold text-transparent md:text-5xl">
-            To Like <span className="opacity-80">({gameMode === "numbers" ? "Tall" : "Bokstaver"})</span>
-          </h1>
+      <div className="w-80 max-w-md bg-white/80 backdrop-blur-xl rounded-[40px] shadow-2xl p-4 border border-white/70 flex flex-col items-center gap-3">
 
-          <form onSubmit={startGame} className="grid gap-5">
-            {/* Modus-velger */}
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setGameMode("numbers")}
-                className={`rounded-lg py-2 text-center font-semibold text-white transition ${
-                  gameMode === "numbers"
-                    ? "bg-white/30 ring-2 ring-white/50"
-                    : "bg-white/10 hover:bg-white/20"
-                }`}
-              >
-                Tall
-              </button>
-              <button
-                type="button"
-                onClick={() => setGameMode("letters")}
-                className={`rounded-lg py-2 text-center font-semibold text-white transition ${
-                  gameMode === "letters"
-                    ? "bg-white/30 ring-2 ring-white/50"
-                    : "bg-white/10 hover:bg-white/20"
-                }`}
-              >
-                Bokstaver
-              </button>
-            </div>
-
-            {/* Antall spillere */}
-            <label className="grid gap-2">
-              <span className="text-sm font-medium text-white/90">Antall spillere (2–6):</span>
-              <input
-                type="number"
-                min={2}
-                max={6}
-                value={players}
-                onChange={(e) => setPlayers(toInt(e.target.value, 2))}
-                className="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-white/50 outline-none transition focus:border-white/40"
-                placeholder="2"
-              />
-            </label>
-
-            {/* Navn på spillere */}
-            <div className="grid gap-3">
-              <span className="text-sm font-medium text-white/90">Navn på spillere:</span>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {Array.from({ length: players }).map((_, i) => (
-                  <input
-                    key={i}
-                    value={names[i] ?? ""}
-                    onChange={(e) =>
-                      setNames((prev) => {
-                        const next = [...prev];
-                        next[i] = e.target.value;
-                        return next;
-                      })
-                    }
-                    className="rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-white/50 outline-none transition focus:border-white/40"
-                    placeholder={`Spiller ${i + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Antall kort */}
-            <label className="grid gap-2">
-              <span className="text-sm font-medium text-white/90">
-                Antall kort ({gameMode === "letters" ? "2–58" : "2–200"}, partall):
-              </span>
-              <input
-                type="number"
-                min={2}
-                max={gameMode === "letters" ? 58 : 200}
-                step={2}
-                value={cards}
-                onChange={(e) => setCards(toInt(e.target.value, 30))}
-                className="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-white placeholder-white/50 outline-none transition focus:border-white/40"
-                placeholder="30"
-              />
-              <small className="text-white/70">
-                Velg hvor mange kort som skal brukes i spillet.
-              </small>
-            </label>
-
-            {/* Start-knapp */}
-            <div className="mt-2">
-              <button
-                type="submit"
-                className="w-full rounded-xl border border-white/20 bg-white/15 px-4 py-3 font-semibold text-white shadow-lg backdrop-blur transition hover:scale-[1.01] hover:bg-white/20 active:scale-[0.995]"
-              >
-                Start spill
-              </button>
-            </div>
-          </form>
-
-          {/* Liten footer-tip */}
-          <p className="mt-4 text-center text-xs text-white/70">
-            Tips: 30 kort = par av 1–15. Du kan endre både antall spillere, navn og kort.
-          </p>
+        {/* Bamser */}
+        <div className="flex items-center justify-center gap-6 mb-2">
+          <div className="text-[100px] leading-none">🧸</div>
+          <div className="text-[100px] leading-none">🧸</div>
         </div>
-      </main>
+
+        {/* Tittel */}
+        <h1 className="text-4xl font-extrabold text-center text-[#6A0DAD]">
+          TO LIKE 💖
+        </h1>
+
+        {/* Spillmodus – KUN KNAPPER */}
+        <section className="text-center w-full mt-2">
+          <div className="flex justify-center gap-3">
+            <button className="px-10 py-6 text-2xl rounded-[20px] font-bold bg-gradient-to-r from-[#FF9A9E] to-[#FECFEF] text-[#4A0035] shadow-lg hover:scale-105 transition-transform border-2 border-[#FFB5D8]">
+              🔢 Tall
+            </button>
+            <button className="px-10 py-6 text-2xl rounded-[20px] font-bold bg-gradient-to-r from-[#A1C4FD] to-[#C2E9FB] text-[#00345A] shadow-lg hover:scale-105 transition-transform border-2 border-[#A4D4FF]">
+              🔤 Bokstaver
+            </button>
+          </div>
+        </section>
+
+        {/* Antall spillere */}
+        <section className="text-center w-full">
+          <p className="text-base font-bold tracking-widest text-[#6A0DAD]">👥 ANTALL SPILLERE</p>
+
+          <div className="flex justify-center gap-3 flex-wrap mt-2">
+            {[2, 3, 4, 5, 6].map((num) => (
+              <button
+                key={num}
+                className="w-20 h-20 text-3xl rounded-[20px] flex items-center justify-center font-extrabold bg-gradient-to-r from-[#F6D365] to-[#FDA085] text-[#4A2600] shadow border-2 border-[#FBD490] hover:scale-105 transition-transform"
+              >
+                {num}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Navn på spillere – UTEN OVERSKRIFT */}
+        <section className="w-full">
+          <div className="grid gap-3 mt-2">
+            <div className="relative">
+              <span className="absolute left-4 top-3 text-xl">👦</span>
+              <input
+                placeholder="Spiller 1"
+                className="w-full rounded-[20px] border-2 border-[#E8D8F7] px-14 py-4 text-2xl bg-white text-[#4A2600] shadow-inner"
+              />
+            </div>
+
+            <div className="relative">
+              <span className="absolute left-4 top-3 text-xl">👧</span>
+              <input
+                placeholder="Spiller 2"
+                className="w-full rounded-[20px] border-2 border-[#E8D8F7] px-14 py-4 text-2xl bg-white text-[#4A2600] shadow-inner"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Antall kort */}
+        <section className="text-center w-full">
+          <p className="text-base font-bold tracking-widest text-[#6A0DAD]">🃏 ANTALL KORT (4–200)</p>
+
+          <input
+            type="range"
+            min={4}
+            max={200}
+            step={2}
+            value={kort}
+            onChange={(e) => setKort(Number(e.target.value))}
+            className="w-full accent-[#6A0DAD] h-4 rounded-lg cursor-pointer mt-2"
+          />
+
+          <p className="mt-1 font-extrabold text-[#4A2600] text-lg">
+            {kort} kort – {kort / 2} par
+          </p>
+        </section>
+
+        {/* Startknapp */}
+        <button
+          onClick={startGame}   // ⭐ Viktig: kobler knappen til startGame()
+          className="w-1/3 rounded-[30px] bg-gradient-to-r from-[#FFC3A0] via-[#FF8B94] to-[#FFAAA5] text-white font-black text-3xl py-6 shadow-xl hover:scale-105 transition-transform border-4 border-[#FFC7C9] mt-1"
+        >
+          🚀 Start Spill!
+        </button>
+
+      </div>
     </div>
   );
 }
