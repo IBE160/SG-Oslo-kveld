@@ -26,7 +26,7 @@ export const LETTER_DATA: Record<string, { emoji: string; name: string }> = {
   N: { emoji: "🌌", name: "Nordlys" },
   O: { emoji: "🦦", name: "Oter" },
   P: { emoji: "🐧", name: "Pingvin" },
-  Q: { emoji: "🐄", name: "" },     // Kun bilde av ku
+  Q: { emoji: "🐄", name: "Q" },     
   R: { emoji: "🦊", name: "Rev" },
   S: { emoji: "🐍", name: "Slange" },
   T: { emoji: "🐯", name: "Tiger" },
