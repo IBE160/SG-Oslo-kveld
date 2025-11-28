@@ -23,14 +23,13 @@ export default function GamePage() {
     currentPlayer,
     isBusy,
     winner,
-    gameStarted,
     gameMode,
     startGame,
     flipCard,
     resetGame,
   } = useGameStore();
 
-  // ----- URL-parametre -----
+  // -------- URL-parametre --------
   const playersParam = toInt(search.get("players"), 2);
   const cardsParam = toInt(search.get("cards"), 30);
   const namesParam = search.get("names") ?? "";
@@ -40,13 +39,13 @@ export default function GamePage() {
   const totalCards = Math.max(2, Math.trunc(cardsParam / 2) * 2);
   const playerNames = namesParam ? namesParam.split(",").map(decodeURIComponent) : [];
 
-  const rawQuery = search.toString(); // debug
+  const rawQuery = search.toString();
 
-  // ----- State -----
+  // -------- State --------
   const [gameOver, setGameOver] = useState(false);
   const [showBigWinner, setShowBigWinner] = useState(false);
 
-  // ----- Dynamisk grid -----
+  // -------- Dynamisk grid --------
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [cols, setCols] = useState(6);
   const [cardSize, setCardSize] = useState(80);
@@ -68,72 +67,49 @@ export default function GamePage() {
   useLayoutEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+
     const measure = () => {
       const rect = el.getBoundingClientRect();
       const { cols, size } = computeBestGrid(deck.length, rect.width, rect.height);
       setCols(cols);
       setCardSize(size);
     };
+
     measure();
+
     const ro = new ResizeObserver(measure);
     ro.observe(el);
+
     window.addEventListener("resize", measure);
+
     return () => {
       ro.disconnect();
       window.removeEventListener("resize", measure);
     };
   }, [deck.length]);
 
-  // ----- Init / restart når valg endres -----
+  // -------- Init / restart --------
   useEffect(() => {
     startGame(numPlayers, modeParam, totalCards);
   }, [numPlayers, totalCards, namesParam, modeParam, startGame]);
 
-  // ----- Feiring ved match -----
-  async function triggerCelebration() {
-    const { default: confetti } = await import("canvas-confetti");
-    confetti({ particleCount: 80, spread: 70, origin: { x: 0.5, y: 0.5 } });
-  }
-
-  // Valgfri lang winner-animasjon (du hadde denne – behold hvis ønskelig)
+  // -------- Winner animation --------
   async function runWinnerAnimation() {
     const { default: confetti } = await import("canvas-confetti");
-    const duration = 3 * 1000;
-    const animationEnd = Date.now() + duration;
-    const defaults: any = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
-
-    function randomInRange(min: number, max: number) {
-      return Math.random() * (max - min) + min;
-    }
-
-    const interval = setInterval(function () {
-      const timeLeft = animationEnd - Date.now();
-      if (timeLeft <= 0) {
-        return clearInterval(interval);
-      }
-      const particleCount = 50 * (timeLeft / duration);
-      confetti({
-        ...defaults,
-        particleCount,
-        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-      });
-      confetti({
-        ...defaults,
-        particleCount,
-        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-      });
-    }, 250);
+    confetti({ particleCount: 100, spread: 70, origin: { x: 0.5, y: 0.5 } });
   }
 
-  // Når gameOver blir true → vis stort banner hvis entydig vinner
   useEffect(() => {
     if (!winner) return;
+
     const maxScore = Math.max(...players.map((p) => p.score));
     const currentWinners = players.filter((p) => p.score === maxScore && p.score > 0);
+
     if (currentWinners.length === 1) {
       runWinnerAnimation();
       setShowBigWinner(true);
     }
+
     setGameOver(true);
   }, [winner, players]);
 
@@ -157,9 +133,11 @@ export default function GamePage() {
 
   return (
     <div style={{ padding: 16, height: "100vh", boxSizing: "border-box" }}>
-      {/* Topp-linje */}
+
+      {/* ---------- Topplinje ---------- */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
         <h1 style={{ margin: 0 }}>To Like ({gameMode === "numbers" ? "Tall" : "Bokstaver"})</h1>
+
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
           <button
             onClick={handleReset}
@@ -174,6 +152,7 @@ export default function GamePage() {
           >
             Ny runde
           </button>
+
           <button
             onClick={goHome}
             style={{
@@ -190,7 +169,7 @@ export default function GamePage() {
         </div>
       </div>
 
-      {/* Poengtavle */}
+      {/* ---------- Poengtavle ---------- */}
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 8 }}>
         {players.map((p, idx) => (
           <div
@@ -201,24 +180,19 @@ export default function GamePage() {
               borderRadius: 8,
               background: p.id === currentPlayer ? "red" : "#f3f4f6",
               fontWeight: p.id === currentPlayer ? 700 : 500,
-              color: p.id === currentPlayer ? "black" : "inherit",
             }}
           >
             {playerNames[idx] || `Spiller ${p.id}`}: {p.score}
             {p.id === currentPlayer ? " ← din tur" : ""}
           </div>
         ))}
+
         <div style={{ marginLeft: "auto", opacity: 0.8 }}>
           Modus: {gameMode === "numbers" ? "Tall" : "Bokstaver"} • Spillere: {numPlayers} • Kort: {totalCards}
         </div>
       </div>
 
-      {/* debug-linje (kan fjernes) */}
-      <div style={{ fontSize: 12, opacity: 0.6, marginBottom: 6 }}>
-        debug: ?{rawQuery} → players={numPlayers}, cards={totalCards}
-      </div>
-
-      {/* Brett */}
+      {/* ---------- Brett ---------- */}
       <div
         ref={containerRef}
         style={{
@@ -238,36 +212,88 @@ export default function GamePage() {
         >
           {deck.map((c) => {
             const faceUp = c.isFaceUp || c.isMatched;
-            const clickable = !isBusy && !c.isMatched && !c.isFaceUp;
+
+            // ---------- INNHOLD PÅ KORT ----------
+            const displayContent = faceUp ? (
+              gameMode === "numbers" ? (
+                /* 🔢 TALLMODUS */
+                <span
+                  style={{
+                    fontSize: Math.floor(cardSize * 0.55),
+                    fontWeight: 900,
+                    lineHeight: 1,
+                  }}
+                >
+                  {c.value}
+                </span>
+              ) : (
+                /* 🔤 BOKSTAVMODUS */
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    textAlign: "center",
+                    lineHeight: 1,
+                  }}
+                >
+                  {c.name && (
+                    <span
+                      style={{
+                        fontSize: Math.floor(cardSize * 0.22),
+                        fontWeight: 700,
+                      }}
+                    >
+                      {c.name}
+                    </span>
+                  )}
+                  {c.emoji && (
+                    <span style={{ fontSize: cardSize * 0.48 }}>
+                      {c.emoji}
+                    </span>
+                  )}
+                </div>
+              )
+            ) : (
+              /* BAKSIDE */
+              <span
+                style={{
+                  fontSize: cardSize * 0.6,
+                  fontWeight: 900,
+                  lineHeight: 1,
+                }}
+              >
+                ?
+              </span>
+            );
 
             return (
               <div
                 key={c.id}
-                onClick={() => (clickable ? handleFlip(c.id) : undefined)}
+                onClick={() =>
+                  !isBusy && !c.isMatched && !c.isFaceUp ? handleFlip(c.id) : undefined
+                }
                 style={{
                   width: cardSize,
                   height: cardSize,
                   border: "1px solid #999",
-                  display: "grid",
-                  placeItems: "center",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
                   background: faceUp ? "#ffffff" : "#2b6cb0",
                   color: faceUp ? "#111" : "#fff",
-                  fontWeight: 900,
-                  fontSize: `${Math.floor(cardSize * 0.55)}px`,
-                  lineHeight: 1,
-                  cursor: clickable ? "pointer" : "default",
+                  cursor: !c.isMatched && !c.isFaceUp ? "pointer" : "default",
                   opacity: c.isMatched ? 0.6 : 1,
                 }}
-                title={c.isMatched ? "Matchet" : faceUp ? String(c.value) : "?"}
               >
-                {faceUp ? c.value : "?"}
+                {displayContent}
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* Vinner-annonsering (stor) */}
+      {/* ---------- Winner Announcement ---------- */}
       {showBigWinner && winners.length === 1 && (
         <WinnerAnnouncement
           winnerName={playerNames[winners[0].id - 1] || `Spiller ${winners[0].id}`}
@@ -275,7 +301,7 @@ export default function GamePage() {
         />
       )}
 
-      {/* Resultatmodal etter stor banner */}
+      {/* ---------- Resultatmodal ---------- */}
       {gameOver && !showBigWinner && winners.length === 1 && (
         <ResultsModal
           winnerName={playerNames[winners[0].id - 1] || `Spiller ${winners[0].id}`}
@@ -283,7 +309,7 @@ export default function GamePage() {
         />
       )}
 
-      {/* Uavgjort / ingen poeng */}
+      {/* ---------- Uavgjort ---------- */}
       {gameOver && !showBigWinner && winners.length !== 1 && (
         <div
           style={{

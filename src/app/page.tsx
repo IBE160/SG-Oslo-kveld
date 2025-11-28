@@ -1,15 +1,25 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";   // router for å starte spill
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
-  const [kort, setKort] = useState(4);
   const router = useRouter();
 
-  // ⭐ STEG 2: startGame-funksjon
+  const [kort, setKort] = useState(4);
+  const [mode, setMode] = useState<"numbers" | "letters">("numbers");
+  const [players, setPlayers] = useState(2);
+
+  const [name1, setName1] = useState("");
+  const [name2, setName2] = useState("");
+
   function startGame() {
     const qs = new URLSearchParams({
-      cards: String(kort)
+      cards: String(kort),
+      mode: mode,
+      players: String(players),
+      names: [name1 || "Spiller 1", name2 || "Spiller 2"]
+        .map(encodeURIComponent)
+        .join(","),
     });
 
     router.push(`/game?${qs.toString()}`);
@@ -31,13 +41,30 @@ export default function HomePage() {
           TO LIKE 💖
         </h1>
 
-        {/* Spillmodus – KUN KNAPPER */}
+        {/* Spillmodus */}
         <section className="text-center w-full mt-2">
           <div className="flex justify-center gap-3">
-            <button className="px-10 py-6 text-2xl rounded-[20px] font-bold bg-gradient-to-r from-[#FF9A9E] to-[#FECFEF] text-[#4A0035] shadow-lg hover:scale-105 transition-transform border-2 border-[#FFB5D8]">
+            <button
+              onClick={() => setMode("numbers")}
+              className={`px-10 py-6 text-2xl rounded-[20px] font-bold shadow-lg border-2 transition-transform hover:scale-105
+                ${
+                  mode === "numbers"
+                    ? "bg-gradient-to-r from-[#FF9A9E] to-[#FECFEF] border-[#FFB5D8] text-[#4A0035]"
+                    : "bg-gray-200 border-gray-300 text-gray-600"
+                }`}
+            >
               🔢 Tall
             </button>
-            <button className="px-10 py-6 text-2xl rounded-[20px] font-bold bg-gradient-to-r from-[#A1C4FD] to-[#C2E9FB] text-[#00345A] shadow-lg hover:scale-105 transition-transform border-2 border-[#A4D4FF]">
+
+            <button
+              onClick={() => setMode("letters")}
+              className={`px-10 py-6 text-2xl rounded-[20px] font-bold shadow-lg border-2 transition-transform hover:scale-105
+                ${
+                  mode === "letters"
+                    ? "bg-gradient-to-r from-[#A1C4FD] to-[#C2E9FB] border-[#A4D4FF] text-[#00345A]"
+                    : "bg-gray-200 border-gray-300 text-gray-600"
+                }`}
+            >
               🔤 Bokstaver
             </button>
           </div>
@@ -45,13 +72,21 @@ export default function HomePage() {
 
         {/* Antall spillere */}
         <section className="text-center w-full">
-          <p className="text-base font-bold tracking-widest text-[#6A0DAD]">👥 ANTALL SPILLERE</p>
+          <p className="text-base font-bold tracking-widest text-[#6A0DAD]">
+            👥 ANTALL SPILLERE
+          </p>
 
           <div className="flex justify-center gap-3 flex-wrap mt-2">
             {[2, 3, 4, 5, 6].map((num) => (
               <button
                 key={num}
-                className="w-20 h-20 text-3xl rounded-[20px] flex items-center justify-center font-extrabold bg-gradient-to-r from-[#F6D365] to-[#FDA085] text-[#4A2600] shadow border-2 border-[#FBD490] hover:scale-105 transition-transform"
+                onClick={() => setPlayers(num)}
+                className={`w-20 h-20 text-3xl rounded-[20px] flex items-center justify-center font-extrabold transition-transform border-2 hover:scale-105
+                  ${
+                    players === num
+                      ? "bg-gradient-to-r from-[#F6D365] to-[#FDA085] text-[#4A2600] border-[#FBD490]"
+                      : "bg-gray-200 text-gray-600 border-gray-300"
+                  }`}
               >
                 {num}
               </button>
@@ -59,12 +94,14 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Navn på spillere – UTEN OVERSKRIFT */}
+        {/* Navn på spillere */}
         <section className="w-full">
           <div className="grid gap-3 mt-2">
             <div className="relative">
               <span className="absolute left-4 top-3 text-xl">👦</span>
               <input
+                value={name1}
+                onChange={(e) => setName1(e.target.value)}
                 placeholder="Spiller 1"
                 className="w-full rounded-[20px] border-2 border-[#E8D8F7] px-14 py-4 text-2xl bg-white text-[#4A2600] shadow-inner"
               />
@@ -73,6 +110,8 @@ export default function HomePage() {
             <div className="relative">
               <span className="absolute left-4 top-3 text-xl">👧</span>
               <input
+                value={name2}
+                onChange={(e) => setName2(e.target.value)}
                 placeholder="Spiller 2"
                 className="w-full rounded-[20px] border-2 border-[#E8D8F7] px-14 py-4 text-2xl bg-white text-[#4A2600] shadow-inner"
               />
@@ -82,7 +121,9 @@ export default function HomePage() {
 
         {/* Antall kort */}
         <section className="text-center w-full">
-          <p className="text-base font-bold tracking-widest text-[#6A0DAD]">🃏 ANTALL KORT (4–200)</p>
+          <p className="text-base font-bold tracking-widest text-[#6A0DAD]">
+            🃏 ANTALL KORT (4–200)
+          </p>
 
           <input
             type="range"
@@ -99,10 +140,11 @@ export default function HomePage() {
           </p>
         </section>
 
-        {/* Startknapp */}
+        {/* Start Spill */}
         <button
-          onClick={startGame}   // ⭐ Viktig: kobler knappen til startGame()
-          className="w-1/3 rounded-[30px] bg-gradient-to-r from-[#FFC3A0] via-[#FF8B94] to-[#FFAAA5] text-white font-black text-3xl py-6 shadow-xl hover:scale-105 transition-transform border-4 border-[#FFC7C9] mt-1"
+          onClick={startGame}
+          className="w-1/3 rounded-[30px] bg-gradient-to-r from-[#FFC3A0] via-[#FF8B94] to-[#FFAAA5] 
+          text-white font-black text-3xl py-6 shadow-xl hover:scale-105 transition-transform border-4 border-[#FFC7C9] mt-1"
         >
           🚀 Start Spill!
         </button>

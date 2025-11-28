@@ -2,61 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
-/* --- Fargerik basis for prosjektet --- */
-:root {
-  color: #f8fafc;
-  background-color: #030617;
+/* ----------------------------- */
+/*   GLOBAL FIX: MODAL BUTTONS   */
+/* ----------------------------- */
+
+/* Sørger for at "Til start" og "Ny runde" kan klikkes */
+button,
+a {
+  pointer-events: auto !important;
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  background-color: #030617;
+/* Modal bakgrunn */
+.modal-backdrop {
+  pointer-events: auto !important;
+  z-index: 99999 !important;
 }
 
-/* --- Fancy bakgrunn / animasjoner for forsiden --- */
-.animate-gradient {
-  background-size: 200% 200%;
-  animation: gradientShift 12s ease infinite;
-}
-@keyframes gradientShift {
-  0% { background-position: 0% 50% }
-  50% { background-position: 100% 50% }
-  100% { background-position: 0% 50% }
+/* Selve modal-boksen */
+.modal-content {
+  pointer-events: auto !important;
+  z-index: 100000 !important;
 }
 
-.float-slow {
-  animation: floatSlow 8s ease-in-out infinite;
-}
-@keyframes floatSlow {
-  0%,100% { transform: translateY(0px) }
-  50%     { transform: translateY(-16px) }
+/* Fade animasjon (brukes av WinnerAnnouncement) */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
-.glass {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
-}
-.card-container {
-  perspective: 1000px;
-}
-
-.card-inner {
-  transition: transform 0.35s ease;
-  transform-style: preserve-3d;
-}
-
-.card-inner.flipped {
-  transform: rotateY(180deg);
-}
-
-.card-front,
-.card-back {
-  backface-visibility: hidden;
-}
-
-.card-back {
-  transform: rotateY(180deg);
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out forwards;
 }
