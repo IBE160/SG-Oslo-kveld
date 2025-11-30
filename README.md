@@ -1,93 +1,114 @@
-# To Like med tall
+# To Like – memory-spill med tall og bokstaver
 
-Dette er et klassisk memory-spill (også kjent som "Huskespill" eller "Konsentrasjon") bygget med en moderne web-teknologistack.
+Dette er et enkelt memory-spill («Huskespill») laget som eksamensprosjekt i  
+**IBE160 Programmering med KI** ved Høgskolen i Molde.
 
-## Regler
+Vi er ikke utdannede utviklere. Vi har brukt **KI-verktøy** til å hjelpe oss med koden  
+(struktur, spilletilstand, komponenter og forslag til styling), men vi har selv:
 
-Målet med spillet er å finne alle parene med like tall.
+- beskrevet hva vi ønsker at spillet skal gjøre  
+- valgt og justert løsninger  
+- testet spillet og finjustert opplevelsen  
+- jobbet spesielt med grafikk, farger og layout  
+- skrevet all tekst i README og refleksjonsrapporten
 
-1.  **Spillstart**: Velg antall spillere og antall brikker du vil spille med.
-2.  **Spillets gang**: Spillet går i runder. Når det er din tur, klikker du på to brikker for å snu dem.
-3.  **Match**: Hvis de to brikkene har samme tall, har du funnet et par! Du får ett poeng, brikkene forblir synlige, og du får en ny tur.
-4.  **Ingen match**: Hvis brikkene har ulikt tall, snus de tilbake med forsiden ned etter et kort øyeblikk. Turen går deretter videre til neste spiller.
-5.  **Spillets slutt**: Spillet er over når alle parene er funnet. En resultattavle viser poengsummen for hver spiller og kårer en vinner.
-6.  **Nytt spill**: Du kan starte en ny runde med de samme eller nye innstillinger.
+Målet vårt har vært å lage et forståelig, spillbart produkt og samtidig lære hvordan man kan bruke KI som «medutvikler» når man ikke er programmerer fra før.
 
-### Standard antall brikker
+---
 
-For å sikre en balansert opplevelse, justeres standard antall brikker basert på antall spillere:
+## Hva spillet gjør
 
--   **2 spillere (standard):** 30 brikker (15 par)
--   **3 spillere:** 40 brikker (20 par)
--   **4 spillere:** 50 brikker (25 par)
--   **5 spillere:** 60 brikker (30 par)
--   **6 spillere:** 70 brikker (35 par)
+**To Like** er et digitalt memory-spill for 2+ spillere.
 
-Logikken er at standard (15 par) økes med 5 par for hver ekstra spiller utover to. Du kan alltid overstyre dette og velge et manuelt antall brikker (partall mellom 10 og 100).
+- Spillet kan spilles med **tall** eller **bokstaver**
+- Spillerne bytter på å snu to kort
+- Får du et par, får du poeng og får fortsette
+- Hvis det ikke er et par, går turen videre til neste spiller
+- Når alle par er funnet, viser spillet en resultattavle og kårer en vinner
+- Det vises også en enkel vinner-skjerm for å gi litt ekstra «spillfølelse»
+
+Spillet er ment å kunne spilles sammen på én skjerm, f.eks. i et klasserom eller på stua.
+
+---
+
+## Regler – steg for steg
+
+1. **Spillstart**  
+   På startsiden kan du:
+   - velge hvor mange spillere som skal være med  
+   - velge hvor mange kort dere vil spille med (må være et partall)  
+   - velge om dere vil spille med **tall** eller **bokstaver**
+
+2. **Din tur**  
+   Når det er din tur:
+   - klikk på ett kort for å snu det  
+   - klikk på et nytt kort
+
+3. **Hvis det er et par**  
+   - de to kortene har samme verdi (samme tall eller samme bokstav)  
+   - du får **ett poeng**  
+   - kortene blir liggende synlige  
+   - du får **en ny tur**
+
+4. **Hvis det ikke er et par**  
+   - kortene er ulike  
+   - kortene snus automatisk tilbake etter et lite øyeblikk  
+   - turen går videre til **neste spiller**
+
+5. **Spillets slutt**  
+   - spillet er ferdig når alle parene er funnet  
+   - en resultattavle viser poengene til alle spillerne  
+   - spillet kårer en vinner  
+   - en vinner-visning gir en liten «feiring» til slutt
+
+6. **Nytt spill**  
+   Etter en runde kan dere:
+   - starte et nytt spill med samme innstillinger, eller  
+   - velge nytt antall kort / spillere / modus
+
+---
+
+## Antall kort
+
+- Spillet krever alltid et **partall** antall kort (2, 4, 6, …) fordi hvert kort må ha en tvilling  
+- For hvert par lages det to like kort (tall eller bokstav)  
+- Koden støtter fleksibelt antall kort  
+- I praksis har vi testet mest med **små brett** (for eksempel 12–16 kort), fordi:
+  - brettet ser ryddig og oversiktlig ut  
+  - det er enklere å følge med for alle på samme skjerm  
+
+---
 
 ## Teknologistack
 
--   **Rammeverk**: Next.js (App Router)
--   **Språk**: TypeScript
--   **Styling**: Tailwind CSS
--   **Tilstandshåndtering**: Zustand
--   **Testing**: Vitest, React Testing Library
+Spillet er bygget som en moderne webapplikasjon:
+
+- **Rammeverk:** Next.js (App Router)  
+- **Språk:** TypeScript  
+- **Styling:** Tailwind CSS  
+- **Tilstandshåndtering:** Zustand  
+- **Testing:** Vitest + React Testing Library  
+- **Bygg/verktøy:** Node.js, npm, Vite  
+
+Dette passer godt til emnet IBE160, der fokuset er **KI-assistert programmering** fremfor at studentene skal mestre all syntaks fra før.
+
+---
 
 ## Installasjon og kjøring
 
-**Forutsetninger**: Node.js (v18 eller nyere) og npm.
+**Forutsetninger:**  
+Du trenger **Node.js v18+** og **npm** installert på maskinen.
 
-1.  **Klone repoet (hvis aktuelt)**
-    ```bash
-    git clone <repo-url>
-    cd tolike
-    ```
+1. **Klon repoet**
+   ```bash
+   git clone https://github.com/IBE160/SG-Oslo-kveld.git
+   cd SG-Oslo-kveld
 
-2.  **Installer avhengigheter**:
-    ```bash
+2. Installer avhengigheter
     npm install
-    ```
 
-3.  **Start utviklingsserveren**:
-    ```bash
+3. Start utviklingsserver
     npm run dev
-    ```
 
-    Åpne [http://localhost:3000](http://localhost:3000) i nettleseren din.
-
-4.  **Kjør tester**:
-    ```bash
-    npm run test
-    ```
-
-## Prosjektstruktur
-
-```
-tolike/
-├── src/
-│   ├── app/
-│   │   ├── components/
-│   │   │   ├── game/         # Spill-spesifikke komponenter
-│   │   │   │   ├── Board.tsx
-│   │   │   │   ├── Card.tsx
-│   │   │   │   ├── GameController.tsx
-│   │   │   │   ├── ResultsModal.tsx
-│   │   │   │   ├── Scoreboard.tsx
-│   │   │   │   └── SettingsPanel.tsx
-│   │   │   └── ui/           # Generelle UI-komponenter
-│   │   ├── globals.css
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── hooks/
-│   │   └── useLocalStorage.ts
-│   ├── lib/
-│   │   └── utils.ts        # Hjelpefunksjoner (kortstokking etc.)
-│   └── store/
-│       └── gameStore.ts    # Zustand store for global tilstand
-├── tests/
-│   └── game.test.ts        # Enhetstester for spillogikk
-├── public/
-├── package.json
-├── tailwind.config.ts
-└── vite.config.ts
-```
+4. Åpne spillet i nettleser
+    http://localhost:3000       
