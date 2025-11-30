@@ -104,11 +104,8 @@ Du trenger **Node.js v18+** og **npm** installert på maskinen.
    git clone https://github.com/IBE160/SG-Oslo-kveld.git
    cd SG-Oslo-kveld
 
-2. Installer avhengigheter
-    npm install
+2. npm install
 
-3. Start utviklingsserver
-    npm run dev
+3. npm run dev
 
-4. Åpne spillet i nettleser
-    http://localhost:3000       
+4. http://localhost:3000       
