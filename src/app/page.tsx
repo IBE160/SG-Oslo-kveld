@@ -98,7 +98,7 @@ export default function HomePage() {
         <section className="w-full">
           <div className="grid gap-3 mt-2">
             <div className="relative">
-              <span className="absolute left-4 top-3 text-xl">👦</span>
+              <span className="absolute left-4 top-3 text-xl"></span>
               <input
                 value={name1}
                 onChange={(e) => setName1(e.target.value)}
@@ -108,7 +108,7 @@ export default function HomePage() {
             </div>
 
             <div className="relative">
-              <span className="absolute left-4 top-3 text-xl">👧</span>
+              <span className="absolute left-4 top-3 text-xl"></span>
               <input
                 value={name2}
                 onChange={(e) => setName2(e.target.value)}
