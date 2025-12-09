@@ -1,0 +1,173 @@
+# Eksempler på KI-prompter brukt i prosjektet «To Like»
+
+Dette dokumentet viser representative eksempler på KI-prompter brukt i prosjektet.  
+En del av de opprinnelige promptene ble ikke lagret (vi brukte private ChatGPT-kontoer uten historikk aktivert).  
+Derfor har vi rekonstruert realistiske og representative eksempler som dekker hele BMAD-prosessen.
+
+Promptene viser hvordan vi faktisk brukte KI:  
+– som støtteverktøy for å forstå begreper  
+– for å bygge grunnstruktur i koden  
+– for prototyper og feilsøking  
+– IKKE for å skrive ferdige tekster eller ta beslutninger for oss  
+
+Dette er i tråd med refleksjonsrapporten.
+
+---
+
+# 🟦 FASE 1 – Analyse og prosjektforståelse
+
+## **Prompt 1 – Definere prosjekt (ChatGPT)**
+
+Vi er to studenter uten programmeringserfaring som skal lage et digitalt memory-spill i Next.js.  
+Spillet skal hete «To Like» og vi ønsker:  
+– valg for antall spillere  
+– valg av antall kort  
+– modus for tall eller bokstaver  
+Kan du forklare hvilke funksjoner og teknologier som er realistiske for oss som nybegynnere, og beskrive prosjektet veldig enkelt?
+
+---
+
+## **Prompt 2 – BMAD prosjektbeskrivelse (Gemini – Analyst)**
+
+Kan du lage en enkel prosjektbeskrivelse i markdown for vårt spill «To Like» som passer inn i BMAD fase 1?  
+Inkluder: problem, mål, brukerbehov, funksjoner, teknologivalg og scope.  
+Forklar det i et språk som passer for nybegynnere.
+
+---
+
+## **Prompt 3 – Forstå begreper**
+
+Kan du forklare enkelt hva “user story”, “epic”, “state”, “komponent” og “frontend” betyr?  
+Bruk eksempler relatert til vårt memory-spill og hold forklaringen på et nivå for total nybegynnere.
+
+---
+
+# 🟩 FASE 2 – PRD, arkitektur, epics og UX-design
+
+## **Prompt 1 – PRD (Gemini – PM)**
+
+Lag et PRD for vårt memory-spill «To Like».  
+Inkluder problem, mål, funksjonelle krav, ikke-funksjonelle krav, begrensninger og teknologivalg.  
+Spillet skal støtte 2–6 spillere, tall/bokstav-modus og fleksibelt antall kort.  
+Skriv PRD-en på norsk og i en svært enkel stil.
+
+---
+
+## **Prompt 2 – Arkitektur (ChatGPT)**
+
+Kan du forklare hvordan vi kan strukturere et enkelt Next.js-prosjekt for et memory-spill?  
+Forklar sammenhengen mellom startside (`page.tsx`), spillbrett (`game/page.tsx`), Zustand-store, og hjelpefunksjoner for kortstokk.  
+Vi trenger en forklaring vi faktisk kan forstå og forklare videre.
+
+---
+
+## **Prompt 3 – Epics og User Stories**
+
+Kan du lage epics og user stories basert på funksjonene i spillet vårt?  
+Del dem i: Spilloppsett, Spilllogikk, UI/UX, Resultat, og Teknisk kvalitet.  
+Bruk enkel og klar markdown.
+
+---
+
+## **Prompt 4 – Prototype-utkast til startside (FØR designet var laget)**
+
+Vi trenger en helt grunnleggende prototype av forsiden til spillet «To Like».  
+Lag et veldig enkelt HTML/React-oppsett som lar oss:  
+– velge modus (Tall/Bokstaver)  
+– velge antall spillere  
+– skrive inn spillernavn  
+– velge antall kort  
+Ingen styling er nødvendig.  
+Dette er kun en funksjonell prototype som vi senere skal designe selv.
+
+*(Denne prompten resulterte i den enkle hvite siden uten styling – «førsteutkastet».)*
+
+---
+
+## **Prompt 5 – Hvordan forbedre designet (overgangen til ferdig versjon)**
+
+Vi har nå en helt enkel prototype av forsiden.  
+Kan du foreslå hvordan vi kan gjøre designet moderne og lekent?  
+Vi ønsker:  
+– pastellfarger  
+– runde former  
+– emojis eller bamse-ikoner  
+– visuelt hierarki  
+Vi lager designet selv, men vi trenger inspirasjon og struktur til hvordan en mer profesjonell forside kan bygges opp.
+
+*(Dette samsvarer med hvordan den ferdige, fargerike forsiden faktisk ble utviklet.)*
+
+---
+
+# 🟧 FASE 3 – Utvikling (Zustand, spillbrett, UI, feilsøking)
+
+## **Prompt 1 – Lage gameStore (ChatGPT)**
+
+Vi trenger en komplett Zustand-store som håndterer spillet «To Like».  
+Den må:  
+– starte spill med antall spillere og modus  
+– generere kortstokk for tall eller bokstaver  
+– snu kort  
+– sjekke match  
+– oppdatere poeng  
+– håndtere turrekkefølge  
+– finne vinneren  
+Lag koden og forklar funksjonene slik at en nybegynner kan forstå dem.
+
+---
+
+## **Prompt 2 – Dynamisk spillbrett**
+
+Hvordan lager vi et responsivt grid i Next.js/React som tilpasser seg antall kort?  
+Vi vil at brettet skal se ryddig ut selv med 4, 30 eller 100 kort.  
+Forklar hvordan vi kan bruke CSS-grid, Tailwind og logikk for kolonneberegning.
+
+---
+
+## **Prompt 3 – Feilsøking av Tailwind**
+
+Vi har installert Tailwind, men styling vises ikke i nettleseren.  
+Kan du liste vanlige feil og forklare nøyaktig hvilke filer vi må sjekke?  
+Skriv steg-for-steg, siden vi er nybegynnere.
+
+---
+
+# 🟨 FASE 4 – Refleksjon & forståelse (vi brukte KI som lærehjelp, ikke tekstgenerator)
+
+## **Prompt 1 – Forstå tekniske begreper til refleksjon**
+
+Kan du forklare veldig enkelt hva følgende betyr i vårt prosjekt:  
+– state management (Zustand)  
+– arkitektur  
+– tekniske utfordringer  
+– KI som støtteverktøy  
+Vi skal bruke dette for refleksjon, men skriver teksten selv.
+
+---
+
+## **Prompt 2 – Forstå vår egen kode**
+
+Kan du forklare hva `game/page.tsx` gjør, steg for steg,  
+slik at vi kan forklare det i muntlig eksamen?  
+Forklar sammenhengen mellom UI og gameStore.
+
+---
+
+## **Prompt 3 – Beskrive KI-bruk ærlig**
+
+Kan du hjelpe oss å lage noen stikkord på hvordan vi har brukt KI i prosjektet,  
+uten å overdrive og uten at KI har skrevet teksten for oss?  
+Vi vil forklare at KI hjalp oss med forståelse, feilsøking og struktur.
+
+---
+
+# ✔️ Oppsummering
+
+Dette dokumentet inneholder representative prompt-eksempler fra hele prosjektet.  
+De viser hvordan vi brukte KI på en pedagogisk, ansvarlig og nybegynner-vennlig måte.  
+Promptene er konsistente med:  
+– GitHub-koden vår  
+– dokumentene i /docs  
+– refleksjonsrapporten vår  
+– eksamenskravene i IBE160
+
